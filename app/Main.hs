@@ -1,7 +1,6 @@
 module Main (main) where
 
-import Data.List (intersperse)
-import Data.Char (ord)
+import Data.List (intersperse) -- Insere um elemento entre cada par de elementos em uma lista
 import System.Process
 
 type Matriz = [[Char]]
