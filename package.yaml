@@ -1,0 +1,40 @@
+name:                sudoku
+version:             0.1.0.0
+github:              "githubuser/sudoku"
+license:             BSD-3-Clause
+author:              "Luiz Paulo"
+maintainer:          "lp.fontes@hotmail.com"
+copyright:           "2024 Luiz Paulo"
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+description:         Please see the README 
+
+dependencies:
+- base >= 4.7 && < 5
+- text
+- process
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+
+executables:
+  sudoku-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+
+
