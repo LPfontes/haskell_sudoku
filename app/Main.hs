@@ -1,16 +1,15 @@
 module Main (main) where
 
-import Data.List (intersperse) -- Insere um elemento entre cada par de elementos em uma lista
-import System.Process
+import System.Console.ANSI --
 
 type Matriz = [[Char]]
 
 -- Função para limpar a tela do terminal
-limparTela :: IO ()
-limparTela = do
-    _ <- system "clear"  -- Para sistemas Unix (Linux, macOS)
-    -- _ <- system "cls"  -- Para sistemas Windows
-    return ()
+limparTelaEPosicionar :: IO ()
+limparTelaEPosicionar  = do 
+    clearFromCursorToScreenBeginning
+
+
 
 -- Matriz de solução 
 createMatrizSolucao :: Matriz
@@ -37,8 +36,8 @@ createMatrizJogo =     [['4', '1', '5', '7', ' ', ' ', ' ', '3', ' '],
                         [' ', ' ', '9', '4', '8', '7', '3', ' ', '1']]
 
 -- Loop do jogo
-jogo :: [[Char]] -> [[Char]] -> Int-> Int-> IO ()
-jogo matrizJogo matrizSolucao acertos total = do
+jogo :: [[Char]] -> [[Char]] -> Int-> Int->  IO ()
+jogo matrizJogo matrizSolucao acertos total  = do
     jogada <- getLine -- le a jogado 
     if jogada == "sair"
         then putStrLn "Saindo..."
@@ -46,31 +45,31 @@ jogo matrizJogo matrizSolucao acertos total = do
             if length jogada /= 5 -- se a string jogado tiver mais que 5 chars a entrada é Inválida
                 then do
                     putStrLn "Digite um comando válido"
-                    jogo matrizJogo matrizSolucao acertos total-- chamada recusriva de jogo
+                    jogo matrizJogo matrizSolucao acertos total -- chamada recusriva de jogo
                 else do
                     let [stringLinha, stringColuna, stringValor] = words jogada -- separa a string da jogada em tres strings
                         linha = read stringLinha :: Int -- trasforma a string da linha em um valor inteiro
                         coluna = read stringColuna :: Int -- trasforma a string da coluna em um valor inteiro
                     if verificarJogada matrizSolucao (linha-1) (coluna-1) stringValor  -- verifica se o valor da jogada está correto
                         then do
-                            limparTela
-                            putStrLn "Correto (─‿‿─)"
+                            limparTelaEPosicionar 
                             if verificaEspacoMatrix matrizJogo (linha-1) (coluna-1)
                                 then do
                                 let matrizNova = inserirValor matrizJogo (linha-1) (coluna-1) (head stringValor)  -- insere o valor da jogada na matrix
                                 printQuadro matrizNova
+                                putStrLn "Correto (─‿‿─)"
                                 if verificaAcertos (acertos+1) total
                                     then putStrLn "A matrix está completa parabéns (/^▽^)/ "
-                                    else jogo matrizNova matrizSolucao (acertos+1) total-- chamada recusriva de jogo com a matrix atualizada
+                                    else jogo matrizNova matrizSolucao (acertos+1) total -- chamada recusriva de jogo com a matrix atualizada
                                 else do 
-                                    putStrLn "Esse espaço ja foi preenchido"
                                     printQuadro matrizJogo
-                                    jogo matrizJogo matrizSolucao acertos total
+                                    putStrLn "Esse espaço ja foi preenchido"
+                                    jogo matrizJogo matrizSolucao acertos total 
                         else do
-                            limparTela
-                            putStrLn "Errado (╥﹏╥)"
+                            limparTelaEPosicionar 
                             printQuadro matrizJogo
-                            jogo matrizJogo matrizSolucao acertos total-- chamada recusriva de jogo
+                            putStrLn "Errado (╥﹏╥)"
+                            jogo matrizJogo matrizSolucao acertos total -- chamada recusriva de jogo
 
 -- Função para imprimir o tabuleiro inicial e as intruções
 printQuadroInicial :: [[Char]] -> IO ()
@@ -91,12 +90,13 @@ printQuadro quadro = do
     printLinhas _ [] = return ()
     printLinhas numeroLinha (linha:linhas) = do
         putStr $ show numeroLinha 
-        printLinha linha
-        printLinhas (numeroLinha + 1) linhas
-
-    printLinha :: [Char] -> IO ()
-    printLinha linha = do
-        putStrLn $  "| |" ++ (intersperse '|' linha)  ++ "| |"
+        case () of
+            _ | numeroLinha <= 3 -> printLinha123 linha 
+              | numeroLinha <= 6 -> printLinha456 linha 
+              | otherwise -> printLinha789 linha 
+        printLinhas (numeroLinha+1) linhas
+         
+        
 
 -- Função para obter o valor de uma célula na matriz
 getValorMatriz :: Matriz -> Int -> Int -> Char
@@ -127,11 +127,112 @@ verificaAcertos acertos total =
     if acertos == total
         then True
         else False
+        
+printLinha123 :: [Char] -> IO ()
+printLinha123 linha  = printPosicao 1 linha
+  where
+    printPosicao :: Int ->[Char] -> IO ()
+    printPosicao _ [] = return ()  -- Caso base: lista vazia, não há nada para imprimir
+    printPosicao  posicao (valor:xs) = 
+        case posicao of
+            1 -> do
+                putStr $  "| |" 
+                setSGR [SetColor Background Dull Blue]
+                putChar valor
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+            4 -> do
+                setSGR [Reset]
+                putChar '|'
+                setSGR [SetColor Background Dull Red]
+                putChar valor 
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+            7 -> do
+                setSGR [Reset]
+                putChar '|'
+                setSGR [SetColor Background Dull Green]
+                putChar valor 
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+                
+            9 -> do
+                putStr $  "|" ++ [valor]  
+                setSGR [Reset]
+                putStrLn $ "| |"
+            _ -> do
+                putChar '|' 
+                putChar valor
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista  
+
+printLinha456 :: [Char] -> IO ()
+printLinha456 linha  = printPosicao 1 linha
+  where
+    printPosicao :: Int ->[Char] -> IO ()
+    printPosicao _ [] = return ()  -- Caso base: lista vazia, não há nada para imprimir
+    printPosicao  posicao (valor:xs) = 
+         case posicao of
+            1 -> do
+                putStr $  "| |" 
+                setSGR [SetColor Background Dull Yellow]
+                putChar valor
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+            4 -> do
+                setSGR [Reset]
+                putChar '|'
+                setSGR [SetColor Background Dull Magenta]
+                putChar valor 
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+            7 -> do
+                setSGR [Reset]
+                putChar '|'
+                setSGR [SetColor Background Dull Cyan]
+                putChar valor 
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+                
+            9 -> do
+                putStr $  "|" ++ [valor]  
+                setSGR [Reset]
+                putStrLn $ "| |"
+            _ -> do
+                putChar '|' 
+                putChar valor
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista 
+printLinha789 :: [Char] -> IO ()
+printLinha789 linha  = printPosicao 1 linha
+  where
+    printPosicao :: Int ->[Char] -> IO ()
+    printPosicao _ [] = return ()  -- Caso base: lista vazia, não há nada para imprimir
+    printPosicao  posicao (valor:xs) = 
+         case posicao of
+            1 -> do
+                putStr $  "| |" 
+                setSGR [SetColor Background Dull Black]
+                putChar valor
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+            4 -> do
+                setSGR [Reset]
+                putChar '|' 
+                setSGR [SetColor Background Dull Green]
+                putChar valor 
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+            7 -> do
+                setSGR [Reset]
+                putChar '|'
+                setSGR [SetColor Background Dull White,SetColor Foreground Dull Black]
+                putChar valor 
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista
+                
+            9 -> do
+                putStr $  "|" ++ [valor]  
+                setSGR [Reset]
+                putStrLn $ "| |" 
+            _ -> do
+                putChar '|' 
+                putChar valor
+                printPosicao (posicao + 1) xs  -- Chama recursivamente a função para o restante da lista  
 -- Função principal
 main :: IO ()
 main = do
     let matrizSolucao = createMatrizSolucao
     let matriz = createMatrizJogo
     printQuadroInicial matriz
-    jogo matriz matrizSolucao 0 36
+    jogo matriz matrizSolucao 0 36 
     putStrLn $ "tchau (^o^)/"
